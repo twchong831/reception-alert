@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter create:*)",
+      "Bash(flutter pub:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(dart --version)",
+      "Bash(flutter devices:*)",
+      "Bash(flutter config:*)",
+      "Bash(dart pub:*)",
+      "Bash(dart analyze:*)",
+      "Bash(DATA_DIR=./data timeout 5 dart run bin/server.dart)",
+      "Bash(dart run:*)",
+      "Bash(DATA_DIR=./data timeout 3 dart run bin/server.dart)"
+    ]
+  }
+}

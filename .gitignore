@@ -1,3 +1,7 @@
+# Environment
+.env
+server/data/
+
 # Miscellaneous
 *.class
 *.lock

@@ -1,0 +1,14 @@
+name: visitor_server
+description: Visitor notification server
+version: 1.0.0
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  shelf: ^1.4.1
+  shelf_router: ^1.1.4
+  shelf_web_socket: ^2.0.0
+  uuid: ^4.2.1
+  web_socket_channel: ^3.0.0
+  sqlite3: ^2.4.0

@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  visitor-server:
+    build: .
+    container_name: visitor-server
+    ports:
+      - '8080:8080'
+    volumes:
+      - /volume1/visitor-app/data:/app/data
+    environment:
+      - PORT=8080
+      - DATA_DIR=/app/data
+    restart: unless-stopped
