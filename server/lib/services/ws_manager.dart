@@ -11,6 +11,12 @@ class WsManager {
   // AS 전용 connections
   final List<WebSocketChannel> _asConnections = [];
 
+  // CEO connections
+  final List<WebSocketChannel> _ceoConnections = [];
+
+  // 비서(Secretary) connections
+  final List<WebSocketChannel> _secretaryConnections = [];
+
   void addConnection(String teamId, WebSocketChannel channel) {
     _connections.putIfAbsent(teamId, () => []);
     _connections[teamId]!.add(channel);
@@ -39,6 +45,26 @@ class WsManager {
       (_) {},
       onDone: () => _asConnections.remove(channel),
       onError: (_) => _asConnections.remove(channel),
+    );
+  }
+
+  void addCeoConnection(WebSocketChannel channel) {
+    _ceoConnections.add(channel);
+
+    channel.stream.listen(
+      (_) {},
+      onDone: () => _ceoConnections.remove(channel),
+      onError: (_) => _ceoConnections.remove(channel),
+    );
+  }
+
+  void addSecretaryConnection(WebSocketChannel channel) {
+    _secretaryConnections.add(channel);
+
+    channel.stream.listen(
+      (_) {},
+      onDone: () => _secretaryConnections.remove(channel),
+      onError: (_) => _secretaryConnections.remove(channel),
     );
   }
 
@@ -87,6 +113,36 @@ class WsManager {
     }
     for (final ch in dead) {
       _asConnections.remove(ch);
+    }
+  }
+
+  void sendToCeo(Map<String, dynamic> message) {
+    final data = jsonEncode(message);
+    final dead = <WebSocketChannel>[];
+    for (final ch in _ceoConnections) {
+      try {
+        ch.sink.add(data);
+      } catch (_) {
+        dead.add(ch);
+      }
+    }
+    for (final ch in dead) {
+      _ceoConnections.remove(ch);
+    }
+  }
+
+  void sendToSecretary(Map<String, dynamic> message) {
+    final data = jsonEncode(message);
+    final dead = <WebSocketChannel>[];
+    for (final ch in _secretaryConnections) {
+      try {
+        ch.sink.add(data);
+      } catch (_) {
+        dead.add(ch);
+      }
+    }
+    for (final ch in dead) {
+      _secretaryConnections.remove(ch);
     }
   }
 }

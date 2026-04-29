@@ -3,6 +3,7 @@ import 'reception_setup_screen.dart';
 import 'team_register_screen.dart';
 import 'as_setup_screen.dart';
 import 'admin_setup_screen.dart';
+import 'ceo_setup_screen.dart';
 
 class RoleSelectScreen extends StatelessWidget {
   const RoleSelectScreen({super.key});
@@ -48,6 +49,16 @@ class RoleSelectScreen extends StatelessWidget {
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AsSetupScreen()),
+                ),
+              ),
+              const SizedBox(height: 16),
+              _RoleButton(
+                icon: Icons.person_4,
+                label: '대표이사 태블릿',
+                subtitle: '커피 요청 및 호출용',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CeoSetupScreen()),
                 ),
               ),
               const SizedBox(height: 16),

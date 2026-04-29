@@ -7,6 +7,7 @@ class AlarmOverlay extends StatefulWidget {
   final String visitorCompany;
   final String purpose;
   final VoidCallback onConfirm;
+  final String alarmSound;
 
   const AlarmOverlay({
     super.key,
@@ -15,6 +16,7 @@ class AlarmOverlay extends StatefulWidget {
     required this.visitorCompany,
     required this.purpose,
     required this.onConfirm,
+    this.alarmSound = 'alarm.wav',
   });
 
   @override
@@ -42,7 +44,7 @@ class _AlarmOverlayState extends State<AlarmOverlay>
 
   Future<void> _playAlarm() async {
     await _player.setReleaseMode(ReleaseMode.loop);
-    await _player.play(AssetSource('sounds/alarm.wav'));
+    await _player.play(AssetSource('sounds/${widget.alarmSound}'));
   }
 
   @override

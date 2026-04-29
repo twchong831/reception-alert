@@ -11,7 +11,11 @@
       "Bash(dart analyze:*)",
       "Bash(DATA_DIR=./data timeout 5 dart run bin/server.dart)",
       "Bash(dart run:*)",
-      "Bash(DATA_DIR=./data timeout 3 dart run bin/server.dart)"
+      "Bash(DATA_DIR=./data timeout 3 dart run bin/server.dart)",
+      "Bash(sudo apt-get:*)",
+      "Bash(python3 -c \"import wave, struct, math; print\\('ok'\\)\")",
+      "Bash(python3:*)",
+      "Bash(flutter clean:*)"
     ]
   }
 }

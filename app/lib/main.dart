@@ -7,6 +7,7 @@ import 'screens/reception_screen.dart';
 import 'screens/team_screen.dart';
 import 'screens/as_screen.dart';
 import 'screens/admin/admin_screen.dart';
+import 'screens/ceo_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -71,6 +72,8 @@ class VisitorApp extends StatelessWidget {
         return AsScreen(serverIp: serverIp);
       case 'admin':
         return AdminScreen(serverIp: serverIp);
+      case 'ceo':
+        return CeoScreen(serverIp: serverIp);
       default:
         return const RoleSelectScreen();
     }

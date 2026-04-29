@@ -1,17 +1,35 @@
-# visitor_app
+# 방문 알림 & AS 접수 앱
 
-A new Flutter project.
+## APK 빌드 & 설치
 
-## Getting Started
+```bash
+# 빌드
+cd /mnt/d/src_workspace/github/reception-alert/app
+flutter build apk --release
 
-This project is a starting point for a Flutter application.
+# APK 파일 위치
+# app/build/app/outputs/flutter-apk/app-release.apk
 
-A few resources to get you started if this is your first Flutter project:
+# 태블릿 USB 연결 후 설치 (기존 앱 유지하며 업데이트)
+adb install -r build/app/outputs/flutter-apk/app-release.apk
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## 웹 디버그
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter run -d chrome
+```
+
+## 역할
+
+| 역할 | 설명 |
+|------|------|
+| 접수 태블릿 | 1층 로비 방문객/AS 접수 |
+| 팀 알림 태블릿 | 방문 알림 수신 |
+| AS 접수 태블릿 | AS 접수 알림 수신 및 처리 |
+| 대표이사 태블릿 | 커피/음료 요청 및 호출 |
+| 관리자 태블릿 | 팀 관리 및 기록 조회 |
+
+## 서버 포트
+
+- 서버: `8803`

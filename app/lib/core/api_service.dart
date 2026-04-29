@@ -5,7 +5,7 @@ class ApiService {
 
   ApiService(String serverIp) {
     _dio = Dio(BaseOptions(
-      baseUrl: 'http://$serverIp:8080',
+      baseUrl: 'http://$serverIp:8803',
       connectTimeout: const Duration(seconds: 5),
       receiveTimeout: const Duration(seconds: 5),
       headers: {'Content-Type': 'application/json'},
@@ -101,6 +101,29 @@ class ApiService {
   Future<int> purgeExpiredData() async {
     final res = await _dio.post('/api/admin/purge-expired');
     return (res.data as Map<String, dynamic>)['purged'] as int;
+  }
+
+  // --- CEO ---
+  Future<Map<String, dynamic>> createCeoRequest({
+    required String type,
+    String? message,
+  }) async {
+    final res = await _dio.post('/api/ceo/requests', data: {
+      'type': type,
+      if (message != null) 'message': message,
+    });
+    return res.data as Map<String, dynamic>;
+  }
+
+  Future<List<dynamic>> getCeoRequests({String? status}) async {
+    final params = <String, dynamic>{};
+    if (status != null) params['status'] = status;
+    final res = await _dio.get('/api/ceo/requests', queryParameters: params);
+    return res.data as List;
+  }
+
+  Future<void> updateCeoRequestStatus(String id, String status) async {
+    await _dio.patch('/api/ceo/requests/$id', data: {'status': status});
   }
 
   Future<void> updateAsStatus(String id, String status) async {

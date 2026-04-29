@@ -5,10 +5,10 @@ services:
     build: .
     container_name: visitor-server
     ports:
-      - '8080:8080'
+      - '8803:8803'
     volumes:
       - /volume1/visitor-app/data:/app/data
     environment:
-      - PORT=8080
+      - PORT=8803
       - DATA_DIR=/app/data
     restart: unless-stopped

@@ -4,6 +4,7 @@ import 'package:sqlite3/sqlite3.dart';
 import 'models/team.dart';
 import 'models/visit.dart';
 import 'models/as_ticket.dart';
+import 'models/ceo_request.dart';
 
 class Store {
   final String dataDir;
@@ -72,7 +73,20 @@ class Store {
       )
     ''');
 
+    _db.execute('''
+      CREATE TABLE IF NOT EXISTS ceo_requests (
+        id TEXT PRIMARY KEY,
+        type TEXT NOT NULL,
+        message TEXT,
+        status TEXT NOT NULL DEFAULT 'pending',
+        created_at TEXT NOT NULL,
+        confirmed_at TEXT
+      )
+    ''');
+
     // 인덱스
+    _db.execute('CREATE INDEX IF NOT EXISTS idx_ceo_requests_status ON ceo_requests(status)');
+    _db.execute('CREATE INDEX IF NOT EXISTS idx_ceo_requests_created_at ON ceo_requests(created_at)');
     _db.execute('CREATE INDEX IF NOT EXISTS idx_visits_team_id ON visits(team_id)');
     _db.execute('CREATE INDEX IF NOT EXISTS idx_visits_status ON visits(status)');
     _db.execute('CREATE INDEX IF NOT EXISTS idx_visits_created_at ON visits(created_at)');
@@ -304,6 +318,59 @@ class Store {
   // 핸들러 호환: saveAsTickets()는 이제 no-op
   Future<void> saveAsTickets() async {}
 
+  // ==================== CEO Requests ====================
+
+  List<CeoRequest> getCeoRequests({String? status, int? limit, int? offset}) {
+    var sql = 'SELECT * FROM ceo_requests WHERE 1=1';
+    final params = <Object?>[];
+
+    if (status != null) {
+      sql += ' AND status = ?';
+      params.add(status);
+    }
+
+    sql += ' ORDER BY created_at DESC';
+
+    if (limit != null) {
+      sql += ' LIMIT ?';
+      params.add(limit);
+      if (offset != null) {
+        sql += ' OFFSET ?';
+        params.add(offset);
+      }
+    }
+
+    return _db.select(sql, params).map(_ceoRequestFromRow).toList();
+  }
+
+  CeoRequest? getCeoRequest(String id) {
+    final results = _db.select('SELECT * FROM ceo_requests WHERE id = ?', [id]);
+    if (results.isEmpty) return null;
+    return _ceoRequestFromRow(results.first);
+  }
+
+  void insertCeoRequest(CeoRequest request) {
+    _db.execute(
+      'INSERT INTO ceo_requests (id, type, message, status, created_at) '
+      'VALUES (?, ?, ?, ?, ?)',
+      [
+        request.id, request.type, request.message,
+        request.status, request.createdAt.toIso8601String(),
+      ],
+    );
+  }
+
+  void updateCeoRequestStatus(String id, String status) {
+    if (status == 'confirmed') {
+      _db.execute(
+        'UPDATE ceo_requests SET status = ?, confirmed_at = ? WHERE id = ?',
+        [status, DateTime.now().toIso8601String(), id],
+      );
+    } else {
+      _db.execute('UPDATE ceo_requests SET status = ? WHERE id = ?', [status, id]);
+    }
+  }
+
   // ==================== Products ====================
 
   List<String> getProducts() {
@@ -350,6 +417,17 @@ class Store {
         purpose: row['purpose'] as String,
         status: row['status'] as String,
         createdAt: DateTime.parse(row['created_at'] as String),
+      );
+
+  CeoRequest _ceoRequestFromRow(Row row) => CeoRequest(
+        id: row['id'] as String,
+        type: row['type'] as String,
+        message: row['message'] as String?,
+        status: row['status'] as String,
+        createdAt: DateTime.parse(row['created_at'] as String),
+        confirmedAt: row['confirmed_at'] != null
+            ? DateTime.parse(row['confirmed_at'] as String)
+            : null,
       );
 
   AsTicket _asTicketFromRow(Row row) => AsTicket(

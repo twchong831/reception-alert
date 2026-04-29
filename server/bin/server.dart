@@ -15,6 +15,7 @@ import 'package:visitor_server/models/team.dart';
 import 'package:visitor_server/handlers/auth_handler.dart';
 import 'package:visitor_server/handlers/visit_handler.dart';
 import 'package:visitor_server/handlers/as_handler.dart';
+import 'package:visitor_server/handlers/ceo_handler.dart';
 
 void main() async {
   final config = Config.load();
@@ -148,6 +149,7 @@ void main() async {
   router.mount('/api/auth/', authRouter(store, config).call);
   router.mount('/api/visit', visitRouter(store, wsManager).call);
   router.mount('/api/as', asRouter(store, wsManager).call);
+  router.mount('/api/ceo/', ceoRouter(store, wsManager).call);
 
   // --- WebSocket ---
 
@@ -165,6 +167,24 @@ void main() async {
     final handler = webSocketHandler((WebSocketChannel channel) {
       print('AS WS connected');
       wsManager.addAsConnection(channel);
+    });
+    return handler(request);
+  });
+
+  // /ws/ceo — 대표이사 WebSocket
+  router.get('/ws/ceo', (Request request) {
+    final handler = webSocketHandler((WebSocketChannel channel) {
+      print('CEO WS connected');
+      wsManager.addCeoConnection(channel);
+    });
+    return handler(request);
+  });
+
+  // /ws/secretary — 비서 WebSocket
+  router.get('/ws/secretary', (Request request) {
+    final handler = webSocketHandler((WebSocketChannel channel) {
+      print('Secretary WS connected');
+      wsManager.addSecretaryConnection(channel);
     });
     return handler(request);
   });

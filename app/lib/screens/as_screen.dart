@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../core/api_service.dart';
+import '../core/storage.dart';
 import '../core/ws_service.dart';
 import '../models/as_ticket.dart';
 import '../widgets/alarm_overlay.dart';
@@ -24,10 +27,12 @@ class _AsScreenState extends State<AsScreen> {
   String? _statusFilter; // null = 진행중(received+in_progress), 'done' = 완료
   final List<Map<String, dynamic>> _alarmQueue = [];
   bool _alarmShowing = false;
+  String _alarmSound = 'alarm.wav';
 
   @override
   void initState() {
     super.initState();
+    _loadAlarmSound();
     _api = ApiService(widget.serverIp);
     _ws = WsService();
 
@@ -78,6 +83,57 @@ class _AsScreenState extends State<AsScreen> {
         _loadData();
         break;
     }
+  }
+
+  Future<void> _loadAlarmSound() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() => _alarmSound = AppStorage(prefs).alarmSound);
+  }
+
+  void _showAlarmSoundPicker() {
+    final previewPlayer = AudioPlayer();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('알람음 선택'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: AppStorage.alarmSounds.entries.map((e) => ListTile(
+            title: Text(e.value),
+            leading: Radio<String>(
+              value: e.key,
+              groupValue: _alarmSound,
+              onChanged: (v) async {
+                previewPlayer.stop();
+                await previewPlayer.play(AssetSource('sounds/${e.key}'));
+                final prefs = await SharedPreferences.getInstance();
+                await AppStorage(prefs).setAlarmSound(e.key);
+                setState(() => _alarmSound = e.key);
+                if (ctx.mounted) (ctx as Element).markNeedsBuild();
+              },
+            ),
+            onTap: () async {
+              previewPlayer.stop();
+              await previewPlayer.play(AssetSource('sounds/${e.key}'));
+              final prefs = await SharedPreferences.getInstance();
+              await AppStorage(prefs).setAlarmSound(e.key);
+              setState(() => _alarmSound = e.key);
+              if (ctx.mounted) (ctx as Element).markNeedsBuild();
+            },
+          )).toList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              previewPlayer.stop();
+              previewPlayer.dispose();
+              Navigator.pop(ctx);
+            },
+            child: const Text('닫기'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -188,6 +244,11 @@ class _AsScreenState extends State<AsScreen> {
             title: const Text('AS 접수 현황'),
             actions: [
               IconButton(
+                icon: const Icon(Icons.music_note),
+                tooltip: '알람음 설정',
+                onPressed: _showAlarmSoundPicker,
+              ),
+              IconButton(
                 icon: const Icon(Icons.inventory),
                 tooltip: '제품 관리',
                 onPressed: _showProductManager,
@@ -249,6 +310,7 @@ class _AsScreenState extends State<AsScreen> {
             visitorName: _alarmQueue.first['visitorName'] as String,
             visitorCompany: _alarmQueue.first['visitorCompany'] as String,
             purpose: _alarmQueue.first['purpose'] as String,
+            alarmSound: _alarmSound,
             onConfirm: () async {
               final alarm = _alarmQueue.first;
               setState(() {

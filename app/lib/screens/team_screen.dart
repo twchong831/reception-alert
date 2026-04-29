@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../core/api_service.dart';
+import '../core/storage.dart';
 import '../core/ws_service.dart';
 import '../models/visit.dart';
 import '../widgets/alarm_overlay.dart';
@@ -30,10 +33,12 @@ class _TeamScreenState extends State<TeamScreen> {
   List<Visit> _visits = [];
   final List<Map<String, dynamic>> _alarmQueue = [];
   bool _alarmShowing = false;
+  String _alarmSound = 'alarm.wav';
 
   @override
   void initState() {
     super.initState();
+    _loadAlarmSound();
     _api = ApiService(widget.serverIp);
     _ws = WsService();
 
@@ -85,6 +90,57 @@ class _TeamScreenState extends State<TeamScreen> {
     }
   }
 
+  Future<void> _loadAlarmSound() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() => _alarmSound = AppStorage(prefs).alarmSound);
+  }
+
+  void _showAlarmSoundPicker() {
+    final previewPlayer = AudioPlayer();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('알람음 선택'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: AppStorage.alarmSounds.entries.map((e) => ListTile(
+            title: Text(e.value),
+            leading: Radio<String>(
+              value: e.key,
+              groupValue: _alarmSound,
+              onChanged: (v) async {
+                previewPlayer.stop();
+                await previewPlayer.play(AssetSource('sounds/${e.key}'));
+                final prefs = await SharedPreferences.getInstance();
+                await AppStorage(prefs).setAlarmSound(e.key);
+                setState(() => _alarmSound = e.key);
+                if (ctx.mounted) (ctx as Element).markNeedsBuild();
+              },
+            ),
+            onTap: () async {
+              previewPlayer.stop();
+              await previewPlayer.play(AssetSource('sounds/${e.key}'));
+              final prefs = await SharedPreferences.getInstance();
+              await AppStorage(prefs).setAlarmSound(e.key);
+              setState(() => _alarmSound = e.key);
+              if (ctx.mounted) (ctx as Element).markNeedsBuild();
+            },
+          )).toList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              previewPlayer.stop();
+              previewPlayer.dispose();
+              Navigator.pop(ctx);
+            },
+            child: const Text('닫기'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _wsSub?.cancel();
@@ -100,6 +156,11 @@ class _TeamScreenState extends State<TeamScreen> {
           appBar: AppBar(
             title: Text('${widget.teamName} 알림'),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.music_note),
+                tooltip: '알람음 설정',
+                onPressed: _showAlarmSoundPicker,
+              ),
               IconButton(
                 icon: const Icon(Icons.refresh),
                 onPressed: _loadData,
@@ -137,6 +198,7 @@ class _TeamScreenState extends State<TeamScreen> {
             visitorName: _alarmQueue.first['visitorName'] as String,
             visitorCompany: _alarmQueue.first['visitorCompany'] as String,
             purpose: _alarmQueue.first['purpose'] as String,
+            alarmSound: _alarmSound,
             onConfirm: () async {
               final alarm = _alarmQueue.first;
               setState(() {

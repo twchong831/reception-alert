@@ -12,9 +12,9 @@ class WsService {
 
   void connect(String serverIp, {String? teamId, bool admin = false}) {
     if (admin) {
-      _url = 'ws://$serverIp:8080/ws/admin';
+      _url = 'ws://$serverIp:8803/ws/admin';
     } else if (teamId != null) {
-      _url = 'ws://$serverIp:8080/ws/team/$teamId';
+      _url = 'ws://$serverIp:8803/ws/team/$teamId';
     } else {
       return;
     }
@@ -22,7 +22,17 @@ class WsService {
   }
 
   void connectAs(String serverIp) {
-    _url = 'ws://$serverIp:8080/ws/as';
+    _url = 'ws://$serverIp:8803/ws/as';
+    _doConnect();
+  }
+
+  void connectCeo(String serverIp) {
+    _url = 'ws://$serverIp:8803/ws/ceo';
+    _doConnect();
+  }
+
+  void connectSecretary(String serverIp) {
+    _url = 'ws://$serverIp:8803/ws/secretary';
     _doConnect();
   }
 

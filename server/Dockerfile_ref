@@ -1,0 +1,24 @@
+FROM dart:stable
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    libsqlite3-0 libsqlite3-dev \
+    tzdata \
+  && rm -rf /var/lib/apt/lists/*
+
+ENV TZ=Asia/Seoul
+COPY certs/it_certs/kmail1/KAMAIL1.cer /usr/local/share/ca-certificates/kamail1.crt
+RUN update-ca-certificates
+
+WORKDIR /app
+
+COPY api/pubspec.* ./
+RUN dart pub get
+
+COPY api/ .
+# pubspec.lock 또는 .dart_tool이 소스 복사로 덮어씌워질 수 있으므로 재실행
+RUN dart pub get
+
+EXPOSE 8802
+
+CMD ["dart","run","bin/server.dart"]
